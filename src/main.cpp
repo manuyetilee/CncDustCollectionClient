@@ -22,7 +22,7 @@ void setup() {
   pinMode(SPINDLE_STAT, INPUT);
   pinMode(MANUAL_SW, INPUT);
   
-  delay(1000);
+  delay(1000); //Wait for pin configuration
 
   pinMode(LASER, FUNCTION_3);
   pinMode(LASER, OUTPUT);
@@ -31,12 +31,7 @@ void setup() {
   pinMode(POWER_STAT, FUNCTION_3);
   pinMode(POWER_STAT, INPUT);
 
-  delay(1000);
-
-  ////Serial.begin(115200);
-  ////while (!Serial);
-  ////Serial.println();
-  ////Serial.println("Configuring wifi station mode...");
+  delay(1000); //Wait for pin configuration
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect(true);
@@ -45,28 +40,17 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED && contconexion < 50) {
     contconexion++;
     delay(500);
-    ////Serial.print(".");
-  }
-  if (contconexion < 50)
-  {
-    ////Serial.print("\nWifi connected, my ipAddress is: ");
-    ////Serial.println(WiFi.localIP());
-  }
-  else
-  {
-    ////Serial.println("\nConnection error");
   }
 }
 
 void loop() {
-  // If statement to expect wifi is connected before trying any resuqest:
-  if((WiFi.status() == WL_CONNECTED) ) {
+  if((WiFi.status() == WL_CONNECTED) ) {  // If statement to expect wifi is connected before trying any resuqest
     //SPINDLE CONTROL
     if (digitalRead(SPINDLE_STAT) && toggle == false) {
-      delay(2000);
+      delay(8000); // Hysterisis for dust collection when spindle turns off, so it has enough time to pick the remaining debree
       dustCollectorEvt("offcollector");
       delay(500);
-      dustCollectorEvt("offcollector");
+      dustCollectorEvt("offcollector"); // Ensures the dust collector is off
       toggle = true;
       laserEvt(true);
     }
@@ -84,7 +68,7 @@ void loop() {
     //COMPLEMENTARY LASER CONTROL
     if(digitalRead(POWER_STAT)==HIGH)
       laserEvt(false);
-    else if(digitalRead(POWER_STAT)==LOW && toggle)//if cnc ON and last time toggle was set to true last time
+    else if(digitalRead(POWER_STAT)==LOW && toggle) // if cnc ON and last time toggle was set to true last time
       laserEvt(true);
     //SWITCH CONTROL
     if (digitalRead(MANUAL_SW) == LOW) {
@@ -98,14 +82,9 @@ void loop() {
 
 void dustCollectorEvt(String evt) {
     HTTPClient http;
-    ////Serial.print("[HTTP] begin...\n");
-    // requesting required link 
     String endPoint = "http://192.168.4.1/" + evt;
-    http.begin(wifiClient, endPoint);
-    ////Serial.print("[HTTP] GET...\n");
-    // start connection and send HTTP header
-    int httpCode = http.GET();
-    ////Serial.print(httpCode);
+    http.begin(wifiClient, endPoint); // Start connection and send HTTP header
+    http.GET(); // The returned value holds the response connection code, for success, failure or other.
     http.end();
 }
 
